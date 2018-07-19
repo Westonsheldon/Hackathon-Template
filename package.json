@@ -10,7 +10,9 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "chart.js": "^2.7.2",
     "cookie-parser": "^1.4.3",
+    "echarts": "^4.1.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
     "extend": "^3.0.1",
@@ -19,5 +21,13 @@
     "serve-favicon": "^2.5.0",
     "tough-cookie": "^2.4.3",
     "w3": "^1.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Westonsheldon/hackathon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Westonsheldon/hackathon/issues"
+  },
+  "homepage": "https://github.com/Westonsheldon/hackathon#readme"
 }
