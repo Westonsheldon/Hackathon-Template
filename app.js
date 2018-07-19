@@ -12,12 +12,20 @@ app.use('/',              express.static( path.join(__dirname,'/web/public')    
 
 app.use(express.static('public'));
 
+var morgan = require('morgan'); //web request logging
+app.use(morgan('dev'))
+
 app.set('view engine','ejs');
 app.set('views', __dirname + '/public/views');
 
-app.use('/', require(__dirname + '/core/routes.js') ); //specifies the path for the api to function
+app.use(require(__dirname + '/core/routes.js')); //specifies the path for the api to function
 app.use(require('body-parser').urlencoded({extended: true}));
 app.use(require('cookie-parser')());
+
+//COMM with Mindsphere
+var msStartup = require('./core/controllers/mindsphere-startup-v3.js');
+const tenant = 'demo';
+msStartup.initialize(tenant);
 
 
 app.listen(3000, function(){

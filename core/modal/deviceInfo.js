@@ -8,6 +8,9 @@ module.exports = class device {
         this.type = obj.type;
         this.params = [];
         this.mindsphere_assetId = obj.mindsphere_assetId;
+        this.mindsphere_parentId = obj.mindsphere_parentId;
+        this.mindsphere_variables = [];
+        this.aspects = [];
         this._lastUpdate();
     }
 
@@ -18,6 +21,10 @@ module.exports = class device {
             z: obj.z || 0
         };
         this._lastUpdate();
+    }
+
+    addAspect(aspect){
+        this.aspects.push(aspect)
     }
 
     addParameter(obj){

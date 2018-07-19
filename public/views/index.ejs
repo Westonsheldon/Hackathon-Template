@@ -1,7 +1,21 @@
 <%- include('resources/load-standard-resources.ejs') %>
 <head>
 
-	<title>Hackathon</title>
+	<title>Map</title>
+
+	<style type="text/css">
+		.btn-tools {
+			background: #879baa;
+			color: #fff;
+			border: 1px solid #becdd7;
+			border-right: none;
+		}
+
+		td:hover {
+			background: #ffffff;
+		}
+
+	</style>
 
 </head>
 <body>
@@ -23,15 +37,220 @@
 	<aside class="right-panel">
 		<header class="header">
 			<div class="header-menu">
-				<h3> Hackathon App</h3>
+				<h3> Hackathon Visualization App</h3>
 			</div>
 		</header>
 
 		<div class="content mt-3">
 			<div class="animated fadeIn">
+				<div class="row float pull-right" style="padding-right:40px">
+        			<div class="table">
+        				<tr>
+        					<td><button class="btn btn-tools" id="mouseHover"><i class="fas fa-mouse-pointer"> Hover</i></button></td>
+        					<td><button class="btn btn-tools" id="addDevice"><i class="fas fa-plus"> Add</i></button></td>
+							<td><button class="btn btn-tools" id="deleteDevice"><i class="fas fa-trash"> Delete</i></button></td>
+							<td><button class="btn btn-tools" id="moveDevice"><i class="fas fa-hand-paper"> Move</i></button></td>
+							<td><button class="btn btn-tools" id="setOrigin"><i class="fas fa-circle"> Origin</i></button></td>
+						</tr>
+					</div>
+				</div>
+
+
+				<div class="col-lg-8">
+					<div id="image">
+						<img src="/media/plan.png" style="position: absolute;">
+					</div>
+				</div>
+
+				<div class="col-lg-4">
+					<div class="card" style="border: 1px solid #374b5a;">
+						<div class="card-header" style="text-align: center; background: #fff;">
+							<h3> Available Devices </h3>
+						</div>
+						<div class="card-body" id="deviceStore" style="position: fixed;">
+							<br>
+						</div>
+					</div>
+				</div>
 			</div>
+		</div>
+
+		<div id="addDeviceModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		    <div class="modal-dialog modal-sm" role="document">
+		        <div class="modal-content">
+		            <div class="modal-header">
+		                <div class="pull-left">
+		                    <h4 class="modal-title" id="exampleModalLabel">Add New Device</h4>
+		                </div>
+		                <div class="pull-right">
+		                    <button type="button" id="closeBtn" aria-label="Close"><i class="fa fa-times"></i></button>
+		                </div>
+		            </div>
+		            <div class="modal-body" style="padding-left: 20px;">
+		            	<form id="addDevice" action="#" class="form-horizontal">
+							<div class="form-group" style="width: 90%;">
+								<label for="name" class="form-control-label">Device Name</label>
+	                            <input type="text" id="name" name="deviceName" class="form-control" placeholder="Insert Name" required>
+							</div>
+							<div class="form-group" style="width: 90%;">
+	                            <label for="type" class="form-control-label">Device Type</label>
+	                            <select name="deviceType" id="type" class="form-control">
+	                            	<% for (let i in deviceList) { %>
+	                            		<option value=<%= deviceList[i] %>><%= deviceList[i] %></option>
+	                            	<% } %>
+	                            </select>
+							</div>
+						</form>
+		            </div>
+		            <div class="modal-footer">
+		            	<button class="btn btn-success" id="submit">Submit</button>
+		            </div>
+		        </div>
+		    </div>
 		</div>
 
 	</aside>
 </body>
 </html>
+<script type="text/javascript">
+	var deviceStore = document.getElementById('deviceStore');
+	var currBtn = mouseHover;
+
+	// window.onload = function() {
+	// 	var img = new Image();
+	// 	var width;
+	// 	var height;
+	// 	img.onload = function() {
+	// 		width = this.width/10;
+	// 		height = this.height/10;
+
+	// 		for (let i=0; i<height; i++) {
+	// 			var table = document.getElementById('grid');
+	// 			table.setAttribute('style', 'width=' + this.width/100 + 'px; height=' + this.height/100 + 'px');
+	// 			var row = table.insertRow(i);
+
+	// 			for (let j=0; j<width; j++) {
+	// 				var cell = row.insertCell(j);
+	// 				cell.setAttribute('name', 'cells');
+	// 				cell.setAttribute("bgColor", "transparent");
+	// 				cell.setAttribute("onmouseover", "this.bgColor='yellow'");
+	// 				cell.setAttribute("onmouseout", "this.bgColor='transparent'")
+	// 				cell.id = j + ', ' + i;
+	// 			}
+
+	// 		}
+	// 	}
+	// 	img.src = '/media/plan.png';
+
+	// }
+
+	
+	$('#mouseHover', '#addDevice', '#deleteDevice', '#moveDevice', '#setOrigin').on('click', function() {
+		currBtn = this.id;
+	})
+
+	var modal = document.getElementById('addDeviceModal');
+	$("#addDevice").on('click', function() {
+		modal.style.display = 'block';
+	})
+
+	$('#closeBtn').on('click', function() {
+		modal.style.display = 'none';
+	})
+
+	$('#submit').on('click', function() {
+		// INSERT AJAX CALL HERE
+		modal.style.display = 'none';
+		var device = document.createElement('IMG');
+
+		device.src = '/media/meter.png';
+		device.style.height = '100px';
+		device.style.width = '100px';
+		device.setAttribute("name", "deviceImages")
+		device.setAttribute("id", $('#name').val());
+		device.style.position = 'fixed';
+		device.style.cursor = '-webkit-grab';
+		device.style.cursor = 'grab';
+		dragElement(device);
+		console.log(device);
+		deviceStore.appendChild(device);
+
+	})
+
+	$('#deleteDevice').on('click', function() {
+		var devices = document.getElementsByName('deviceImages');
+
+		for (let i in devices) {
+			devices[i].onmouseover = function() {
+				devices[i].style.cursor = 'pointer';
+			}
+
+			devices[i].onclick = function() {
+				var parent = document.getElementById("deviceStore");
+				parent.removeChild(devices[i]);
+			}
+		}
+	})
+
+	$('#mouseHover').on('click', function() {
+		var devices = document.getElementsByName('deviceImages');
+
+		for (let i in devices) {
+			devices[i].onmouseover = function() {
+				devices[i].style.cursor = 'help';
+			}
+
+			devices[i].onclick = function() {
+				alert(devices[i].id + ' ' + devices[i].value);
+			}
+		}
+	})
+
+	function dragElement(elmnt) {
+	  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+	  if (document.getElementById(elmnt.id + "header")) {
+	    /* if present, the header is where you move the DIV from:*/
+	    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+	  } else {
+	    /* otherwise, move the DIV from anywhere inside the DIV:*/
+	    elmnt.onmousedown = dragMouseDown;
+	  }
+
+
+	  function dragMouseDown(e) {
+	  	elmnt.style.cursor = '-webkit-grabbing';
+	  	elmnt.style.cursor = '-grabbing';
+	    e = e || window.event;
+	    e.preventDefault();
+	    // get the mouse cursor position at startup:
+	    pos3 = e.clientX;
+	    pos4 = e.clientY;
+	    document.onmouseup = closeDragElement;
+	    // call a function whenever the cursor moves:
+	    document.onmousemove = elementDrag;
+	  }
+
+	  function elementDrag(e) {
+	    e = e || window.event;
+	    e.preventDefault();
+	    // calculate the new cursor position:
+	    pos1 = pos3 - e.clientX;
+	    pos2 = pos4 - e.clientY;
+	    pos3 = e.clientX;
+	    pos4 = e.clientY;
+		e.value = pos1 + ' ' + pos2 + ' ' + pos3 + ' ' + pos3;
+	    // set the element's new position:
+	    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+	    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+	  }
+
+	  function closeDragElement() {
+	  	elmnt.style.cursor = '-webkit-grab';
+	  	elmnt.style.cursor = '-grab';
+	    /* stop moving when mouse button is released:*/
+	    document.onmouseup = null;
+	    document.onmousemove = null;
+	  }
+	}
+
+</script>

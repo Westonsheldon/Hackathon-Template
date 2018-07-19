@@ -1,204 +1,101 @@
-var path = require("path");
-
 const mindgate = require('./mindsphere-https-v3.js');
-var schedule = require('node-schedule');
 var moment = require('moment-timezone');
-var fs = require('fs');
-var sqlite3 = require('sqlite3').verbose();
 
-// Create temporary database for storing session data
-// TODO: Potentially store in memory? Look into functionality with MongoDb
-// let db = new sqlite3.Database(__dirname + '/user-cache.db', {memory: true}, (err) => {
-//   if (err) {
-//     return console.error(err.message);
-//   };
-//   console.log('Connected to ' + __dirname + '/temp2.db');
-//   db.open();
-// });
+var DB_API = require('../db_api/db_api.js');
+var deviceInfo = require('../modal/deviceInfo.js');
+var aspectClass = require('../modal/aspect.js');
 
-var db = require('../../pac_gui.js').database;
+var tokenresult = {};
 
 exports.initialize = function(tenant){
 
   return new Promise(function(resolve, reject) {
-    
-    // Create table for assets and table for aspects
-    db.run('CREATE TABLE if not exists assets(name, assetId, parentId, description, location, aspect)');
-    db.run('CREATE TABLE if not exists aspects(assetId, aspectName, variables)');
-
-    db.serialize(function() {
-
-       // Options to get bearer token
-      var options = {
-        username: "AdminTechUserEMDS",
-        password:"242fec67-45c7-432b-8567-19abf8767cd5"
+  
+    DB_API.mindsphere.getAccounts()
+    .then(accounts => {
+      const mainAccount = accounts[0];
+      const options = {
+        username: mainAccount.username,
+        password:mainAccount.password
       }
+     return mindgate.get_token(options)
+    })
+    .then(tokenresponse => {
+      tokenresult = JSON.parse(tokenresponse.body);
+      // Bearer token for authentication
+      const options = {
+        bearertoken: tokenresult.access_token,
+        pageSize: 1000,
+      }
+        // Get master assets
+      return mindgate.get_asset(options);
+    })
+    .then(assetresponse => {
+      const assetresult = JSON.parse(assetresponse.body);
+      const filterAssets = assetresult["_embedded"]["assets"].filter(x => !x["deleted"] && x["typeId"])
 
-      // Get Token
-      mindgate.get_token(options)
-      .then(function (tokenresponse) {
-        let tokenresult = JSON.parse(tokenresponse.body);
-        
-        // Bearer token for authentication
-        let options = {
-          bearertoken: tokenresult.access_token,
-          pageSize: 1000,
-        }
-
-         // Get master assets
-        mindgate.get_asset(options)
-        .then(function (assetresponse) {
-          let assetresult = JSON.parse(assetresponse.body);
-
-          // Iterate through next pages incase size is not large enough to contain all assets
-          while ((assetresult["page"]["totalPages"] - 1) !== assetresult["page"]["number"]) {
-            let options = {
-              bearertoken: tokenresult.access_token,
-              pageSize: 1000,
-              page: assetresult["page"]["number"] + 1,
-            }
-
-            mindgate.get_asset(options)
-            .then(function (assetresponse) {
-              let nextPageResult = JSON.parse(assetresponse.body);
-              assetresult.push(nextPageResult);
-            })
-            .catch(message => {
-              console.log(moment().format("YYYY-MM-DD HH:mm:ss"), "\x1b[31m", message.error, 'body message: "', message.body, '"\x1b[37m');
-              reject(Error(message));
-            })
-          }
-          
-          // Prepare submission into asset table
-          var assetTable = db.prepare('INSERT INTO assets VALUES (?, ?, ?, ?, ?, ?)');
-
-          // Filter through asset response for necessary info
-          assetresult["_embedded"]["assets"].forEach(function(asset) {
-
-            //Make sure asset has not been recently deleted
-            if (!asset["deleted"]) {
-
-              // options for accessing aspects
-              let options = {
-                bearertoken: tokenresult.access_token,
-                assetId: asset["assetId"]
-              }
-
-              mindgate.get_aspect(options)
-              .then(function (aspectresponse) {
-                let aspectresult = JSON.parse(aspectresponse.body)
-
-                // Prepare submission into aspect table
-                var aspectTable = db.prepare('INSERT INTO aspects(assetId, aspectName, variables) VALUES (?, ?, ?)');
-                
-                // Filter through aspect response for necessary info
-                aspectresult["_embedded"]["aspects"].forEach(function(aspect) {
-                  var variables = new Array();
-                  for (var i=0; i<aspect["variables"].length; i++) {
-                    variables.push(aspect["variables"][i]["name"]);
-                  }
-
-                  // Initial Timeseries Data                    
-                  options = {
-                    bearertoken: tokenresult.access_token,
-                    assetId: asset["assetId"],
-                    aspectName: aspect["name"]
-                  };
-
-                  var match = tenant + '_PAC';
-                  // Check to make sure is PAC meter for specific tenant
-                  if (aspect["name"].match(match) != null) {
-                    
-                    // add asset data to table
-                    assetTable.run(asset["name"], asset["assetId"], asset["parentId"], asset["description"], asset["location"], aspect["name"]);
-
-                    // add aspect data to table
-                    aspectTable.run(asset["assetId"], aspect["name"], variables.toString());
-
-                    // Only create timeseries table for PAC meters
-                    db.run('CREATE TABLE if not exists "'+ asset["assetId"] + '_' + aspect["name"] + '"(rowid, time, curr, ' + variables + ')');
-
-                    // Take the last hour of data
-                    var endTime;
-                    mindgate.get_timeseries(options)
-                    .then(function(timeResponse) {
-                      let timeResult = JSON.parse(timeResponse.body);
-                      if (timeResult[0] === undefined) {
-                        db.run('DELETE FROM assets WHERE assetId="' + asset["assetId"] + '"');
-                      } else {
-                        endTime = timeResult[0]["_time"];
-
-                        var startTime = moment(endTime).subtract(180, 'minutes');
-                        console.log(moment(startTime).format('LLLL'));
-                        console.log(moment(endTime).format('LLLL'));
-
-                        // Create new API request with set hour time interval
-                        options = {
-                          bearertoken: tokenresult.access_token,
-                          assetId: asset["assetId"],
-                          aspectName: aspect["name"],
-                          startTime: moment(startTime).toISOString(),
-                          endTime: moment(endTime).toISOString()
-                        };
-
-                        var timeTable = db.prepare('INSERT INTO "'+ asset["assetId"] + '_' + aspect["name"] + '"(rowid, time, curr) VALUES (?, ?, ?)');
-                        var rowid = 0;
-
-                        // API request to get timeseries data
-                        mindgate.get_timeseries(options)
-                        .then(function(timeResponse){
-                          db.serialize(function() {
-                            let timeResult = JSON.parse(timeResponse.body);
-                            timeResult.forEach(function(time) {
-                              var variables = Object.keys(time);
-                              var timeIndex = variables.indexOf("_time");
-                              variables.splice(timeIndex, 1);
-                              timeTable.run(rowid, time["_time"], JSON.stringify(variables));
-                              rowid++;
-
-                              //var varArray = new Array();
-                              for (let i=0; i<variables.length; i++) {
-                                var varValue = time[variables[i]];
-                                //console.log(time[variables[i]]);
-                                
-                                db.run('UPDATE "'+ asset["assetId"] + '_' + aspect["name"] + '" SET "' + variables[i] + '"="' + time[variables[i]] + '" WHERE time="' + time["_time"] + '"', function(err) {
-                                  if (err) {
-                                    console.log(Error(err));
-                                  } else {
-                                    //console.log(variables[i] + ' ' + varValue);
-                                    //console.log('UPDATE "'+ asset["assetId"] + '_' + aspect["name"] + '" SET "' + variables[i] + '"="' + time[variables[i]] + '", WHERE time="' + time["_time"] + '"');
-                                  }
-                                });
-                              }
-                            })
-                          })
-                        }).catch(message => { // Catch for get_timeseries for all data
-                            console.log(moment().format("YYYY-MM-DD HH:mm:ss"), "\x1b[31m", message.error, 'body message: "', message.body, '"\x1b[37m');
-                            reject(Error(message));
-                          }) 
-                      }// End if timeResult != null
-
-                    }).catch(message => { // Catch for get_timeseries for time interval
-                        console.log(moment().format("YYYY-MM-DD HH:mm:ss"), "\x1b[31m", message.error, 'body message: "', message.body, '"\x1b[37m');
-                        reject(Error(message));
-                      }) 
-                  }
-                })
-              }).catch(message => { // Catch for get_aspect
-                  console.log(moment().format("YYYY-MM-DD HH:mm:ss"), "\x1b[31m", message.error, 'body message: "', message.body, '"\x1b[37m');
-                  reject(Error(message));
-                })
-            }
-          })
-        }).catch(message => { // Catch for get_asset
-            console.log(moment().format("YYYY-MM-DD HH:mm:ss"), "\x1b[31m", message.error, 'body message: "', message.body, '"\x1b[37m');
-            reject(Error(message));
-          }) 
-      }).catch(message => { // Catch for get_token
-          console.log(moment().format("YYYY-MM-DD HH:mm:ss"), "\x1b[31m", message.error, 'body message: "', message.body, '"\x1b[37m');
-          reject(Error(message));
+      let promiseAssetArray = [];
+      filterAssets.forEach(asset =>{
+        let newAsset = new deviceInfo({
+          name:asset.name,
+          type:asset.typeId.split('_')[1],
+          mindsphere_assetId:asset.assetId,
+          mindsphere_parentId: asset.parentId
         })
+        
+        asset.variables.forEach(parameter => {
+          newAsset.mindsphere_variables.push(parameter);
+        })
+        asset.aspects.forEach(aspect => {
+          newAsset.addAspect(aspect);
+        })
+        promiseAssetArray.push(DB_API.devices.add(newAsset));
+      })
+      return Promise.all(promiseAssetArray)
+    })
+    .then(allAssets => {
+      return new Promise((resolve,reject) =>{
+        // options for accessing aspects
+        console.log(`Found ${allAssets.length} assets`)
+        let promiseAssetArray = [];
+        console.log(`Begin Loading Aspects...`)
+        allAssets.forEach(asset => {
+          let options = {
+            bearertoken: tokenresult.access_token,
+            assetId: asset.mindsphere_assetId
+          }
+          mindgate.get_aspect(options)
+          .then(aspectresponse => {
+            const aspectresult = JSON.parse(aspectresponse.body)
+            // Filter through aspect response for necessary info
+            aspectresult["_embedded"]["aspects"].forEach(aspect => {
+              asset.addAspect(aspect);
+            })
+            finalAspectHandler(asset);
+          })
+          .catch(err => {})
+        })
+      })
     })
   })
 }
 
+function finalAspectHandler(asset){
+  let aspects = asset.aspects.filter(x => x.description != 'Device Heartbeat' && x.name !='status');
+  aspects.forEach((aspect,ii) => {
+    asset.aspects[ii] = new aspectClass({
+      device_id: asset.device_id,
+      name: aspect.name,
+      description: aspect.description,
+      aspectTypeName: aspect.aspectTypeName,
+      aspectTypeId: aspect.aspectTypeId,
+      assetID_name: asset.mindsphere_assetId + aspect.name
+    })
+  });
+  console.log(asset);
+
+  // aspects.forEach(aspect => {
+  //   DB_API.aspects.add(aspect)
+  // })
+  //DB_API.aspects.add()
+}
