@@ -15,10 +15,11 @@
     "express": "^4.16.3",
     "extend": "^3.0.1",
     "jquery": "^3.3.1",
-    "moment": "^2.22.2",
+    "moment": "^2.20.1",
     "serve-favicon": "^2.5.0",
     "sqlite3": "^4.0.2",
     "tough-cookie": "^2.4.3",
-    "w3": "^1.0.0"
+    "w3": "^1.0.0",
+    "moment-timezone": "^0.5.14"
   }
 }
