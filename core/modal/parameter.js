@@ -4,5 +4,10 @@ module.exports = class parameter {
         this.param_id = obj.param_id;
         this.name   = obj.name;
         this.unit   = obj.unit;
-    }    
+        this.dataType = obj.dataType;
+    }
+
+    setDeviceId(id){
+        this.device_id = id;
+    }
 }

@@ -32,4 +32,10 @@ app.listen(3000, function(){
   console.log('Example app listening on port 3000!');
 })
 
+
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled Rejection at:', p, 'reason:', reason);
+  // application specific logging, throwing an error, or other logic here
+});
+
 exports = app;

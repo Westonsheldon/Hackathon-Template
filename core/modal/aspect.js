@@ -9,11 +9,15 @@ module.exports = class aspect {
         this.aspectTypeName = obj.aspectTypeName;
         this.aspectTypeId = obj.aspectTypeId;
         this.assetID_name = obj.assetID_name;
+        this.params = [];
         this._lastUpdate();
     }
 
     _lastUpdate(){
         this.last_update = moment().utc().format();
+    }
+    addParam(asset){
+        this.params.push(asset)
     }
 
     

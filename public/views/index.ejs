@@ -96,10 +96,12 @@
 	                            <label for="type" class="form-control-label">Device Type</label>
 	                            <select name="deviceType" id="type" class="form-control">
 	                            	<% for (let i in deviceList) { %>
-	                            		<option value=<%= deviceList[i] %>><%= deviceList[i] %></option>
+	                            		<option value=<%= deviceList[i].name %>><%= deviceList[i].name %> (<%= deviceList[i].type %>)</option>
 	                            	<% } %>
-	                            </select>
+								</select>
+								
 							</div>
+							
 						</form>
 		            </div>
 		            <div class="modal-footer">

@@ -4,6 +4,7 @@ var moment = require('moment-timezone');
 var DB_API = require('../db_api/db_api.js');
 var deviceInfo = require('../modal/deviceInfo.js');
 var aspectClass = require('../modal/aspect.js');
+var parameterClass = require('../modal/parameter.js');
 
 var tokenresult = {};
 
@@ -83,19 +84,33 @@ exports.initialize = function(tenant){
 function finalAspectHandler(asset){
   let aspects = asset.aspects.filter(x => x.description != 'Device Heartbeat' && x.name !='status');
   aspects.forEach((aspect,ii) => {
-    asset.aspects[ii] = new aspectClass({
+    let newAspect = new aspectClass({
       device_id: asset.device_id,
       name: aspect.name,
       description: aspect.description,
       aspectTypeName: aspect.aspectTypeName,
       aspectTypeId: aspect.aspectTypeId,
-      assetID_name: asset.mindsphere_assetId + aspect.name
+      assetID_name: aspect.name+asset.mindsphere_assetId
     })
-  });
-  console.log(asset);
 
-  // aspects.forEach(aspect => {
-  //   DB_API.aspects.add(aspect)
-  // })
-  //DB_API.aspects.add()
+    DB_API.aspects.add(newAspect)
+    .catch(err => {})
+
+    aspect.variables.forEach(param => {
+      let newParam = new parameterClass({
+        name:param.name,
+        unit:param.unit,
+        dataType:param.dataType
+      })
+      newAspect.addParam(newParam);
+      DB_API.params.add(newParam)
+      .then(newParam => {
+        newParam.setDeviceId(asset.device_id);
+        DB_API.device_param.add(newParam)
+        .catch(err => {})
+      })
+      .catch(err => {})
+    });
+    
+  });
 }
