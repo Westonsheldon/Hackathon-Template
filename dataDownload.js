@@ -16,7 +16,7 @@ var baseURL = 'https://emds.piam.eu1.mindsphere.io';
 
 let options = {username: username, password: password, baseURL: baseURL};
 
-exports.getDailyData = function(startTime, endTime) {
+exports.getData = function(startTime, endTime) {
 	return new Promise(function(resolve, reject) {
 	mindgatev3.get_token(options)
 	  .then(function(tokenResponse) {
