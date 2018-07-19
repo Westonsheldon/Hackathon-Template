@@ -16,9 +16,9 @@ var baseURL = 'https://emds.piam.eu1.mindsphere.io';
 
 let options = {username: username, password: password, baseURL: baseURL};
 
-exports.getData = function(startTime, endTime) {
+exports.getDailyData = function(startTime, endTime) {
 	return new Promise(function(resolve, reject) {
-			mindgatev3.get_token(options)
+	mindgatev3.get_token(options)
 	  .then(function(tokenResponse) {
 	    //console.log(tokenresponse.error, tokenresponse.answer.statusCode)
 	    let tokenResult = JSON.parse(tokenResponse.body);
@@ -26,8 +26,8 @@ exports.getData = function(startTime, endTime) {
 	    	bearertoken: tokenResult.access_token,
 	    	assetId: '313ba682dd25450da3d249d058f1882a',
 	    	aspectName: 'hackathon_PAC4200',
-	    	startTime: moment().subtract(100, 'day').startOf('day').toISOString(),
-	    	endTime: moment().subtract(100, 'day').toISOString()
+	    	startTime: startTime,
+	    	endTime: endTime
 	    }
 	    return mindgatev3.get_timeseries(params)
 	  })
@@ -61,3 +61,14 @@ exports.getData = function(startTime, endTime) {
 	  })
 	})
 }
+
+/*
+startTime: moment().subtract(100, 'day').startOf('day').toISOString(),
+endTime: moment().subtract(100, 'day').toISOString()
+
+startTime: moment().subtract(100, 'day').startOf('week').toISOString(),
+endTime: moment().subtract(100, 'day').toISOString()
+
+startTime: moment().subtract(100, 'day').startOf('month').toISOString(),
+endTime: moment().subtract(100, 'day').toISOString()
+*/
