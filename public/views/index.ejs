@@ -15,6 +15,31 @@
 			background: #ffffff;
 		}
 
+		img.tip {
+			border-bottom: 1px dashed;
+			text-decoration: none
+		}
+		img.tip:hover {
+			cursor: help;
+			position: relative
+		}
+		img.tip span {
+			display: none
+		}
+		img.tip:hover span {
+			border: #c0c0c0 1px dotted;
+			padding: 5px 20px 5px 5px;
+			display: block;
+			z-index: 100;
+			background: url(../images/status-info.png) #f0f0f0 no-repeat 100% 5%;
+			left: 0px;
+			margin: 10px;
+			width: 250px;
+			position: absolute;
+			top: 10px;
+			text-decoration: none
+		}
+
 	</style>
 
 </head>
@@ -56,9 +81,9 @@
 				</div>
 
 
-				<div class="col-lg-8">
+				<div class="col-sm-12">
 					<div id="image">
-						<img src="/media/plan.png" style="position: absolute;">
+						<img id="map" src="/media/plan.png" style="position: absolute;">
 					</div>
 				</div>
 
@@ -87,16 +112,12 @@
 		                </div>
 		            </div>
 		            <div class="modal-body" style="padding-left: 20px;">
-		            	<form id="addDevice" action="#" class="form-horizontal">
-							<div class="form-group" style="width: 90%;">
-								<label for="name" class="form-control-label">Device Name</label>
-	                            <input type="text" id="name" name="deviceName" class="form-control" placeholder="Insert Name" required>
-							</div>
+		            	<form id="addDevice" action="#" class="form-horizontal"> 
 							<div class="form-group" style="width: 90%;">
 	                            <label for="type" class="form-control-label">Device Type</label>
 	                            <select name="deviceType" id="type" class="form-control">
 	                            	<% for (let i in deviceList) { %>
-	                            		<option value=<%= deviceList[i].name %>><%= deviceList[i].name %> (<%= deviceList[i].type %>)</option>
+	                            		<option deviceName ='<%= deviceList[i].name %>' deviceType=<%= deviceList[i].type %> ><%= deviceList[i].name %> (<%= deviceList[i].type %>)</option>
 	                            	<% } %>
 								</select>
 								
@@ -118,6 +139,7 @@
 	var deviceStore = document.getElementById('deviceStore');
 	var currBtn = mouseHover;
 
+	var deviceList = JSON.parse('<%- JSON.stringify(deviceList) %>');
 	// window.onload = function() {
 	// 	var img = new Image();
 	// 	var width;
@@ -146,6 +168,35 @@
 
 	// }
 
+	var assetPositions = {};
+
+	$(window).resize(function(){
+		$('img[name="deviceImages"').each(function(){
+			console.log($(this)[0].id)
+			const offset = {
+				left:assetPositions[$(this)[0].id].x*$('#map').width() + $('#map')[0].x,
+				top: assetPositions[$(this)[0].id].y*$('#map').height() + $('#map')[0].y
+			}
+			$(this).offset({ top: offset.top, left: offset.left});
+		})
+		
+	})
+
+
+	//Create a System for Scaling Factors
+	function coordinateConvert(x,y){
+		let globalCoordinates = $('#map')[0].x;
+		const global = {
+			x: $('#map')[0].x,
+			y: $('#map')[0].y
+		}
+		const relative = {
+			x:Math.floor((x-global.x)/$('#map').width()*1e5)/1e5,
+			y:Math.floor((y-global.y)/$('#map').height()*1e5)/1e5,
+		}
+		return relative;
+	}
+
 	
 	$('#mouseHover', '#addDevice', '#deleteDevice', '#moveDevice', '#setOrigin').on('click', function() {
 		currBtn = this.id;
@@ -161,15 +212,25 @@
 	})
 
 	$('#submit').on('click', function() {
+		console.log($(this))
 		// INSERT AJAX CALL HERE
 		modal.style.display = 'none';
 		var device = document.createElement('IMG');
+		
+		
+		const deviceName = $('select#type option:selected')[0].attributes['deviceName'].value;
+		const deviceType = $('select#type option:selected')[0].attributes['deviceType'].value;
+		console.log(deviceType)
+		console.log(deviceName,deviceType)
 
-		device.src = '/media/meter.png';
-		device.style.height = '100px';
-		device.style.width = '100px';
+		device.src = `/media/${deviceType}.png`;
+		device.style.height = '75px';
+		device.style.width = '75px';
 		device.setAttribute("name", "deviceImages")
-		device.setAttribute("id", $('#name').val());
+		device.setAttribute("title",JSON.stringify(deviceList.filter(x => x.name == deviceName)))
+		device.setAttribute("id", deviceName);
+		device.setAttribute("deviceType", deviceType);
+		device.setAttribute("deviceName", deviceName);
 		device.style.position = 'fixed';
 		device.style.cursor = '-webkit-grab';
 		device.style.cursor = 'grab';
@@ -226,24 +287,32 @@
 	    e.preventDefault();
 	    // get the mouse cursor position at startup:
 	    pos3 = e.clientX;
-	    pos4 = e.clientY;
+		pos4 = e.clientY;
 	    document.onmouseup = closeDragElement;
 	    // call a function whenever the cursor moves:
 	    document.onmousemove = elementDrag;
 	  }
 
 	  function elementDrag(e) {
-	    e = e || window.event;
+		e = e || window.event;
 	    e.preventDefault();
 	    // calculate the new cursor position:
 	    pos1 = pos3 - e.clientX;
 	    pos2 = pos4 - e.clientY;
 	    pos3 = e.clientX;
-	    pos4 = e.clientY;
+		pos4 = e.clientY;
+		
 		e.value = pos1 + ' ' + pos2 + ' ' + pos3 + ' ' + pos3;
 	    // set the element's new position:
 	    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-	    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+		elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+		const imgOffset = $($(e)[0].target).offset();
+		const newCoordinates = coordinateConvert(imgOffset.left,imgOffset.top);
+		const assetName = $(e)[0].target.id
+		assetPositions[assetName] = {
+			x: newCoordinates.x,
+			y: newCoordinates.y
+		}
 	  }
 
 	  function closeDragElement() {
