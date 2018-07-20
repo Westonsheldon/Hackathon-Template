@@ -1,0 +1,304 @@
+<%- include('resources/load-standard-resources.ejs') %>
+<head>
+
+	<title>Analytical Insights</title>
+
+	<link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<!-- call chart.js -->
+<!-- <script src="Chart.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
+<body>
+	<div id="header" style="width: 100%; background: #fff">
+	    <div id="headerContent">
+	        <div class="pull-left"><i class="fas fa-dashboard"></i></div>
+	    </div>
+	</div>
+	
+	<aside class="left-panel">
+		<nav class="navbar navbar-expand-sm navbar-default" data-toggle="collapse" style="display: flex">
+			<div class="navbar-header" style="color: #fff">
+		        <a class="navbar-brand" href="./"><img src="media/sie-logo-claim-white-rgb.png" alt="Logo"></a><br>
+				<!-- <a href="/" style="color: #fff"><h3> Hackathon App </h3></a> -->
+				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="/" role="tab" aria-controls="nav-dashboard" aria-selected="true">Daily</a>
+				<br></br>
+				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="/weekly" role="tab" aria-controls="nav-dashboard" aria-selected="true">Weekly</a>
+				<br></br>
+				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="" role="tab" aria-controls="nav-dashboard" aria-selected="true">Monthly</a>
+				<br></br>
+<!-- 				<a class="nav-item nav-link" id="nav-devices-tab" data-toggle="tab" href="/dash-devices" role="tab" aria-controls="nav-devices" aria-selected="false">Devices</a>
+				<br></br> -->
+				<!-- <a class="nav-item nav-link" id="nav-devices-tab" data-toggle="tab" href="/dash-devices" role="tab" aria-controls="nav-devices" aria-selected="false">Reports</a> -->
+		    </div>
+		</nav>
+	</aside>
+	
+	<aside class="right-panel">
+		<header class="header">
+			<div class="header-menu">
+				<h3> Reported Insights <%- today.tsArray[0].split("T")[0]  %></h3>
+			</div>
+		</header>
+
+		<div class="content mt-3">
+			<div class="animated fadeIn">
+			</div>
+		</div>
+	<!-- chart test -->
+	<div>
+	<button type="button" class="btn btn-primary btn-lg">Daily</button>
+	<button type="button" class="btn btn-primary btn-lg">Weekly</button>
+	<button type="button" class="btn btn-primary btn-lg">Monthly</button>
+	<button type="button" class="btn btn-danger btn-lg pull-right">Send Report</button>
+
+	<div class="content mt-3">
+		<br></br>
+		<div class="row">
+		  <div class="col-lg-4 col-sm-12">
+			<div class="card">
+				<h3> Demand</h3>
+				<section class="card" style="height:20vh">
+						<div class="card-header user-header alt bg-dark">
+							<div class="media">
+								<a>
+									<img class="align-self-center rounded-circle mr-3" style="width:85px; height: 85px" alt="" src="/media/devices/peakDemand.png">
+								</a>
+								<h2><center><%- today.peakDemand %> kW</center></h2>
+								<!-- <h6><center>Daily  |  Weekly  |  Monthly</center></h6> -->
+							</div>
+						</div>
+				</section>
+			</div>
+		  </div>
+		<div class="row">
+			<div class="col-lg-4 col-sm-12">
+				<div class="card">
+					<h3> Usage</h3>
+					<section class="card" style="height:20vh">
+							<div class="card-header user-header alt bg-dark">
+								<div class="media">
+									<a>
+										<img class="align-self-center rounded-circle mr-3" style="width:85px; height: 85px" alt="" src="/media/devices/electric.png">
+									</a>
+									<h2><center><%- Number.parseFloat(today.usage).toFixed(1) %> kWh</center></h2>
+									<!-- <h6><center>Daily  |  Weekly  |  Monthly</center></h6> -->
+								</div>
+							</div>
+						</section>
+				</div>
+			</div>
+		<div class="row">
+	 	 <div class="col-lg-4 col-sm-12">
+			<div class="card">
+				<h3> Cost</h3>
+				<section class="card" style="height:20vh">
+						<div class="card-header user-header alt bg-dark">
+							<div class="media">
+								<a>
+									<img class="align-self-center rounded-circle mr-3" style="width:85px; height: 85px" alt="" src="/media/devices/dollar.png">
+								</a>
+								<h2><center>$ 158.90</center></h2>
+								<!-- <h6><center>Daily  |  Weekly  |  Monthly</center></h6> -->
+							</div>
+						</div>
+				</section>
+			</div>
+		  </div>
+		</div>	
+		<div class="row">
+		  <div class="col-lg-12">
+			<div class="card-body">
+				<canvas id="myChart" width="1200" height="600" style="margin:25px"></canvas>
+			</div>
+		  </div>
+		</div>
+		<div class="row">
+				<div class="col-lg-12">
+				  <div class="card-body">
+						<table class="table table-hover" style="margin:25px">
+								<thead>
+								  <tr>
+									<th scope="col">Quick Stats</th>
+									<th scope="col"><i class="fa fa-bolt"></i> Max kW </th>
+									<th scope="col"><i class="fa fa-line-chart"></i> Energy Usage </th>
+									<th scope="col"><i class="fa fa-usd"></i> Average Cost </th>
+								  </tr>
+								</thead>
+								<tbody>
+								  <tr>
+									<th scope="row">Today</th>
+									<td><%- today.peakDemand %></td>
+									<td><%- Number.parseFloat(today.usage).toFixed(1) %></td>
+									<td>$294.25</td>
+								  </tr>
+								  <tr>
+									<th scope="row">Yesterday</th>
+									<td><%- yesterday.peakDemand %></td>
+									<td><%- Number.parseFloat(yesterday.usage).toFixed(1) %></td>
+									<td>$224.25</td>
+								  </tr>
+								  <tr>
+									<th scope="row">This Week</th>
+									<td><%- Number.parseFloat(7 * today.peakDemand).toFixed(1) %></td>
+									<td><%- Number.parseFloat(7 * today.usage).toFixed(1) %></td>
+									<td>$594.25</td>
+								  </tr>
+								  <tr>
+									<th scope="row">Last Week</th>
+									<td><%- Number.parseFloat(7 * yesterday.peakDemand + 555).toFixed(1) %></td>
+									<td><%- Number.parseFloat(7 * yesterday.usage + 255).toFixed(1) %></td>
+									<td>$413.15</td>
+								 </tr> 
+									<th scope="row">This Month</th>
+									<td><%- Number.parseFloat(31 * today.peakDemand).toFixed(1) %></td>
+									<td><%- Number.parseFloat(31 * today.usage).toFixed(1) %></td>
+									<td>$2,164.55</td>
+							 	 </tr> 
+								  <th scope="row">Last Month</th>
+									<td><%- Number.parseFloat(31 * yesterday.peakDemand + 1555).toFixed(1) %></td>
+									<td><%- Number.parseFloat(31 * yesterday.usage + 3555).toFixed(1) %></td>
+								  <td>$1,294.25</td>
+							 </tr> 
+								</tbody>
+							  </table>
+						  </div>
+					  </div>
+		</div>
+	</div>
+	</aside>
+	
+</body>
+
+<script>
+var ctx = document.getElementById("myChart").getContext("2d");
+
+const colors = {
+  green: {
+    fill: '#e0eadf',
+    stroke: '#5eb84d',
+  },
+  lightBlue: {
+    stroke: '#6fccdd',
+  },
+  darkBlue: {
+    fill: '#92bed2',
+    stroke: '#3282bf',
+  },
+  purple: {
+    fill: '#8fa8c8',
+    stroke: '#75539e',
+  },
+};
+
+var activePowerArray = <%- JSON.stringify(today.activePowerArray) %>;
+var reactivePowerArray = <%- JSON.stringify(today.reactivePowerArray) %>;
+var apparentPowerArray = <%- JSON.stringify(today.apparentPowerArray) %>;
+var timeseries = <%- JSON.stringify(today.tsArray) %>; 
+const loggedIn = [26, 36, 42, 38, 40, 30, 12];
+const available = [34, 44, 33, 24, 25, 28, 25];
+const availableForExisting = [16, 13, 25, 33, 40, 33, 45];
+const unavailable = [5, 9, 10, 9, 18, 19, 20];
+const xData = [13, 14, 15, 16, 17, 18, 19];
+
+const myChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: timeseries,
+    // datasets: [{
+    //   label: "Unavailable",
+    //   fill: true,
+    //   backgroundColor: colors.purple.fill,
+    //   pointBackgroundColor: colors.purple.stroke,
+    //   borderColor: colors.purple.stroke,
+    //   pointHighlightStroke: colors.purple.stroke,
+    //   borderCapStyle: 'butt',
+    //   data: unavailable,
+
+    // }, {
+	datasets: [{
+      label: "Real Power (kW)",
+      fill: true,
+      backgroundColor: colors.darkBlue.fill,
+      pointBackgroundColor: colors.darkBlue.stroke,
+      borderColor: colors.darkBlue.stroke,
+      pointHighlightStroke: colors.darkBlue.stroke,
+      borderCapStyle: 'butt',
+      data: activePowerArray,
+    }, {
+      label: "Reactive Power (kVAR)",
+      fill: true,
+      backgroundColor: colors.lightBlue.fill,
+      pointBackgroundColor: colors.lightBlue.stroke,
+      borderColor: colors.lightBlue.stroke,
+      pointHighlightStroke: colors.lightBlue.stroke,
+      borderCapStyle: 'butt',
+      data: reactivePowerArray,
+    }, {
+      label: "Apparant Power (kVA)",
+      fill: true,
+      backgroundColor: colors.green.fill,
+      pointBackgroundColor: colors.green.stroke,
+      borderColor: colors.green.stroke,
+      pointHighlightStroke: colors.green.stroke,
+      data: apparentPowerArray,
+    }]
+  },
+  options: {
+    responsive: false,
+    // Can't just just `stacked: true` like the docs say
+    scales: {
+      yAxes: [{
+        stacked: true,
+      }]
+    },
+    animation: {
+      duration: 750,
+    },
+  }
+});
+</script>
+
+<!-- <script>
+	var ctx = document.getElementById("myChart");
+	var myChart = new Chart(ctx, {
+		type: 'bar',
+		data: {
+			labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+			datasets: [{
+				label: '# of Votes',
+				data: [12, 19, 3, 5, 2, 3],
+				backgroundColor: [
+					'rgba(255, 99, 132, 0.2)',
+					'rgba(54, 162, 235, 0.2)',
+					'rgba(255, 206, 86, 0.2)',
+					'rgba(75, 192, 192, 0.2)',
+					'rgba(153, 102, 255, 0.2)',
+					'rgba(255, 159, 64, 0.2)'
+				],
+				borderColor: [
+					'rgba(255,99,132,1)',
+					'rgba(54, 162, 235, 1)',
+					'rgba(255, 206, 86, 1)',
+					'rgba(75, 192, 192, 1)',
+					'rgba(153, 102, 255, 1)',
+					'rgba(255, 159, 64, 1)'
+				],
+				borderWidth: 1
+			}]
+		},
+		options: {
+			scales: {
+				yAxes: [{
+					ticks: {
+						beginAtZero:true
+					}
+				}]
+			}
+		}
+	});
+	</script> -->
+	
+</html>

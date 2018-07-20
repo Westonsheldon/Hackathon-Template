@@ -3,6 +3,8 @@
 
 	<title>Analytical Insights</title>
 
+	<link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
 </head>
 
 <!-- call chart.js -->
@@ -21,9 +23,13 @@
 			<div class="navbar-header" style="color: #fff">
 		        <a class="navbar-brand" href="./"><img src="media/sie-logo-claim-white-rgb.png" alt="Logo"></a><br>
 				<!-- <a href="/" style="color: #fff"><h3> Hackathon App </h3></a> -->
-<!-- 				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="#" role="tab" aria-controls="nav-dashboard" aria-selected="true">Dashboard</a>
+				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="/" role="tab" aria-controls="nav-dashboard" aria-selected="true">Daily</a>
 				<br></br>
-				<a class="nav-item nav-link" id="nav-devices-tab" data-toggle="tab" href="/dash-devices" role="tab" aria-controls="nav-devices" aria-selected="false">Devices</a>
+				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="/weekly" role="tab" aria-controls="nav-dashboard" aria-selected="true">Weekly</a>
+				<br></br>
+				<a class="nav-item nav-link active" id="nav-dashboard-tab" data-toggle="tab" href="" role="tab" aria-controls="nav-dashboard" aria-selected="true">Monthly</a>
+				<br></br>
+<!-- 				<a class="nav-item nav-link" id="nav-devices-tab" data-toggle="tab" href="/dash-devices" role="tab" aria-controls="nav-devices" aria-selected="false">Devices</a>
 				<br></br> -->
 				<!-- <a class="nav-item nav-link" id="nav-devices-tab" data-toggle="tab" href="/dash-devices" role="tab" aria-controls="nav-devices" aria-selected="false">Reports</a> -->
 		    </div>
@@ -33,7 +39,7 @@
 	<aside class="right-panel">
 		<header class="header">
 			<div class="header-menu">
-				<h3> Reported Insights</h3>
+				<h3> Reported Insights <%- today.tsArray[0].split("T")[0]  %></h3>
 			</div>
 		</header>
 
@@ -42,13 +48,16 @@
 			</div>
 		</div>
 	<!-- chart test -->
-	<button type="button" class="btn btn-primary btn-lg">Daily</button>
+	<div>
+<!-- 	<button type="button" class="btn btn-primary btn-lg">Daily</button>
 	<button type="button" class="btn btn-primary btn-lg">Weekly</button>
-	<button type="button" class="btn btn-primary btn-lg">Monthly</button>
+	<button type="button" class="btn btn-primary btn-lg">Monthly</button> -->
+	<button type="button" class="btn btn-danger btn-lg">Send Report</button>
+
 	<div class="content mt-3">
 		<br></br>
 		<div class="row">
-		  <div class="col-lg-3">
+		  <div class="col-lg-4 col-sm-12">
 			<div class="card">
 				<h3> Demand</h3>
 				<section class="card" style="height:20vh">
@@ -57,7 +66,7 @@
 								<a>
 									<img class="align-self-center rounded-circle mr-3" style="width:85px; height: 85px" alt="" src="/media/devices/peakDemand.png">
 								</a>
-								<h2><center>28.9 kW</center></h2>
+								<h2><center><%- today.peakDemand %> kW</center></h2>
 								<!-- <h6><center>Daily  |  Weekly  |  Monthly</center></h6> -->
 							</div>
 						</div>
@@ -65,7 +74,7 @@
 			</div>
 		  </div>
 		<div class="row">
-			<div class="col-lg-3">
+			<div class="col-lg-4 col-sm-12">
 				<div class="card">
 					<h3> Usage</h3>
 					<section class="card" style="height:20vh">
@@ -74,7 +83,7 @@
 									<a>
 										<img class="align-self-center rounded-circle mr-3" style="width:85px; height: 85px" alt="" src="/media/devices/electric.png">
 									</a>
-									<h2><center>58.9 kWh</center></h2>
+									<h2><center><%- Number.parseFloat(today.usage).toFixed(1) %> kWh</center></h2>
 									<!-- <h6><center>Daily  |  Weekly  |  Monthly</center></h6> -->
 								</div>
 							</div>
@@ -82,7 +91,7 @@
 				</div>
 			</div>
 		<div class="row">
-	 	 <div class="col-lg-3">
+	 	 <div class="col-lg-4 col-sm-12">
 			<div class="card">
 				<h3> Cost</h3>
 				<section class="card" style="height:20vh">
@@ -91,7 +100,7 @@
 								<a>
 									<img class="align-self-center rounded-circle mr-3" style="width:85px; height: 85px" alt="" src="/media/devices/dollar.png">
 								</a>
-								<h2><center>$ 158.9</center></h2>
+								<h2><center>$ 158.90</center></h2>
 								<!-- <h6><center>Daily  |  Weekly  |  Monthly</center></h6> -->
 							</div>
 						</div>
@@ -100,57 +109,57 @@
 		  </div>
 		</div>	
 		<div class="row">
-		  <div class="col-lg-6">
+		  <div class="col-lg-12">
 			<div class="card-body">
-				<canvas id="myChart" width="800" height="400"></canvas>
+				<canvas id="myChart" width="1200" height="600" style="margin:25px"></canvas>
 			</div>
 		  </div>
 		</div>
 		<div class="row">
 				<div class="col-lg-12">
 				  <div class="card-body">
-						<table class="table table-hover">
+						<table class="table table-hover" style="margin:25px">
 								<thead>
 								  <tr>
 									<th scope="col">Quick Stats</th>
-									<th scope="col">Max kW</th>
-									<th scope="col">Energy Usage</th>
-									<th scope="col">Average Cost</th>
+									<th scope="col"><i class="fa fa-bolt"></i> Max kW </th>
+									<th scope="col"><i class="fa fa-line-chart"></i> Energy Usage </th>
+									<th scope="col"><i class="fa fa-usd"></i> Average Cost </th>
 								  </tr>
 								</thead>
 								<tbody>
 								  <tr>
 									<th scope="row">Today</th>
-									<td>78.2</td>
-									<td>188.4</td>
+									<td><%- today.peakDemand %></td>
+									<td><%- Number.parseFloat(today.usage).toFixed(1) %></td>
 									<td>$294.25</td>
 								  </tr>
 								  <tr>
 									<th scope="row">Yesterday</th>
-									<td>58.2</td>
-									<td>148.4</td>
+									<td><%- yesterday.peakDemand %></td>
+									<td><%- Number.parseFloat(yesterday.usage).toFixed(1) %></td>
 									<td>$224.25</td>
 								  </tr>
 								  <tr>
 									<th scope="row">This Week</th>
-									<td>178.2</td>
-									<td>348.4</td>
+									<td><%- Number.parseFloat(7 * today.peakDemand).toFixed(1) %></td>
+									<td><%- Number.parseFloat(7 * today.usage).toFixed(1) %></td>
 									<td>$594.25</td>
 								  </tr>
 								  <tr>
 									<th scope="row">Last Week</th>
-									<td>138.2</td>
-									<td>388.4</td>
+									<td><%- Number.parseFloat(7 * yesterday.peakDemand + 555).toFixed(1) %></td>
+									<td><%- Number.parseFloat(7 * yesterday.usage + 255).toFixed(1) %></td>
 									<td>$413.15</td>
 								 </tr> 
 									<th scope="row">This Month</th>
-									<td>738.2</td>
-									<td>438.4</td>
+									<td><%- Number.parseFloat(31 * today.peakDemand).toFixed(1) %></td>
+									<td><%- Number.parseFloat(31 * today.usage).toFixed(1) %></td>
 									<td>$2,164.55</td>
 							 	 </tr> 
 								  <th scope="row">Last Month</th>
-								  <td>678.2</td>
-								  <td>5,288.4</td>
+									<td><%- Number.parseFloat(31 * yesterday.peakDemand + 1555).toFixed(1) %></td>
+									<td><%- Number.parseFloat(31 * yesterday.usage + 3555).toFixed(1) %></td>
 								  <td>$1,294.25</td>
 							 </tr> 
 								</tbody>
@@ -158,11 +167,8 @@
 						  </div>
 					  </div>
 		</div>
-	  </div>
+	</div>
 	</aside>
-
-
-
 	
 </body>
 
@@ -187,6 +193,10 @@ const colors = {
   },
 };
 
+var activePowerArray = <%- JSON.stringify(today.activePowerArray) %>;
+var reactivePowerArray = <%- JSON.stringify(today.reactivePowerArray) %>;
+var apparentPowerArray = <%- JSON.stringify(today.apparentPowerArray) %>;
+var timeseries = <%- JSON.stringify(today.tsArray) %>; 
 const loggedIn = [26, 36, 42, 38, 40, 30, 12];
 const available = [34, 44, 33, 24, 25, 28, 25];
 const availableForExisting = [16, 13, 25, 33, 40, 33, 45];
@@ -196,7 +206,7 @@ const xData = [13, 14, 15, 16, 17, 18, 19];
 const myChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: xData,
+    labels: timeseries,
     // datasets: [{
     //   label: "Unavailable",
     //   fill: true,
@@ -216,16 +226,16 @@ const myChart = new Chart(ctx, {
       borderColor: colors.darkBlue.stroke,
       pointHighlightStroke: colors.darkBlue.stroke,
       borderCapStyle: 'butt',
-      data: availableForExisting,
+      data: activePowerArray,
     }, {
       label: "Reactive Power (kVAR)",
       fill: true,
-      backgroundColor: colors.green.fill,
+      backgroundColor: colors.lightBlue.fill,
       pointBackgroundColor: colors.lightBlue.stroke,
       borderColor: colors.lightBlue.stroke,
       pointHighlightStroke: colors.lightBlue.stroke,
       borderCapStyle: 'butt',
-      data: available,
+      data: reactivePowerArray,
     }, {
       label: "Apparant Power (kVA)",
       fill: true,
@@ -233,7 +243,7 @@ const myChart = new Chart(ctx, {
       pointBackgroundColor: colors.green.stroke,
       borderColor: colors.green.stroke,
       pointHighlightStroke: colors.green.stroke,
-      data: loggedIn,
+      data: apparentPowerArray,
     }]
   },
   options: {
