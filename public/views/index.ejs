@@ -11,22 +11,34 @@
 			border-right: none;
 		}
 
-		.chartwrapper {
-		  height: 100%;
-		  position: relative;
-		  /*overflow: hidden;*/
-		  padding-bottom: 70%;
+		td:hover {
+			background: #ffffff;
 		}
 
-		.chartdiv {
-		  position: absolute;
-		  width: 100%;
-		  height: 100%;
+		img.tip {
+			border-bottom: 1px dashed;
+			text-decoration: none
 		}
-
-		a span {display: none; position: absolute; color: #fff; background: #000; padding: 5px;}
-a {position: relative;}
-a:hover span {display: block; text-align: center;}
+		img.tip:hover {
+			cursor: help;
+			position: relative
+		}
+		img.tip span {
+			display: none
+		}
+		img.tip:hover span {
+			border: #c0c0c0 1px dotted;
+			padding: 5px 20px 5px 5px;
+			display: block;
+			z-index: 100;
+			background: url(../images/status-info.png) #f0f0f0 no-repeat 100% 5%;
+			left: 0px;
+			margin: 10px;
+			width: 250px;
+			position: absolute;
+			top: 10px;
+			text-decoration: none
+		}
 
 	</style>
 
@@ -56,57 +68,34 @@ a:hover span {display: block; text-align: center;}
 
 		<div class="content mt-3">
 			<div class="animated fadeIn">
-				<br>
-				<div class="sufee-alert alert with-close alert-primary alert-dismissible fade show" id="alert" style="display: none">
-		            <span class="badge badge-pill badge-primary">Notice</span>
-		                Origin is Set
-		              <button type="button" class="close" id="closeAlert">
-		                <span aria-hidden="true">&times;</span>
-		            </button>
-		        </div>
-		        <div class="sufee-alert alert with-close alert-primary alert-dismissible fade show" id="alert2" style="display: none">
-		            <span class="badge badge-pill badge-secondary">Warning</span>
-		                Origin is not set; set before placing element!
-		              <button type="button" class="close" id="closeAlert2">
-		                <span aria-hidden="true">&times;</span>
-		            </button>
-		        </div>
-				<div class="row">
-					<div class="col-md-8" style="height: 100%;">
-                        <div class="card">
-                            <div class="card-header user-header alt bg-dark" style="background: #506473; height: 50px;">
-                            	<div class="float-left">
-                            		<h3> Device Map </h3>
-                            	</div>
-                                <div class="float-right">
-									<ul>
-										<button class="btn btn-secondary" id="setOrigin"><i class="fas fa-circle"> Origin</i></button>
-										<button class="btn btn-secondary" id="mouseHover"><i class="fas fa-mouse-pointer"> Hover</i></button>
-	        							<button class="btn btn-secondary" id="addDevice"><i class="fas fa-plus"> Add</i></button>
-										<button class="btn btn-secondary" id="deleteDevice"><i class="fas fa-trash"> Delete</i></button>
-									</ul>
-								</div>
-							</div>
-							<div class="card-body" style="display: block;">
-								<div class="chartwrapper" id="wrapper">
-									<table class="table" style="position: absolute;">
-										<td><tr></tr></td>
-									</table>
-									<img src="/media/plan.png" class="chartdiv" id='image' style="position: absolute;">
-								</div>
-							</div>
+				<div class="row float pull-right" style="padding-right:40px">
+        			<div class="table">
+        				<tr>
+        					<td><button class="btn btn-tools" id="mouseHover"><i class="fas fa-mouse-pointer"> Hover</i></button></td>
+        					<td><button class="btn btn-tools" id="addDevice"><i class="fas fa-plus"> Add</i></button></td>
+							<td><button class="btn btn-tools" id="deleteDevice"><i class="fas fa-trash"> Delete</i></button></td>
+							<td><button class="btn btn-tools" id="moveDevice"><i class="fas fa-hand-paper"> Move</i></button></td>
+							<td><button class="btn btn-tools" id="setOrigin"><i class="fas fa-circle"> Origin</i></button></td>
+						</tr>
+					</div>
+				</div>
+
+
+				<div class="col-sm-12">
+					<div id="image">
+						<img id="map" src="/media/plan.png" style="position: absolute;">
+					</div>
+				</div>
+
+				<div class="col-lg-4">
+					<div class="card" style="border: 1px solid #374b5a;">
+						<div class="card-header" style="text-align: center; background: #fff;">
+							<h3> Available Devices </h3>
+						</div>
+						<div class="card-body" id="deviceStore" style="position: fixed;">
+							<br>
 						</div>
 					</div>
-
-					<div class="col-md-4" style="height: 100%;">
-                        <div class="card">
-                            <div class="card-header user-header alt bg-dark" style="background: #506473; height: 50px;">
-                                <h3> Device Store </h3>
-							</div>
-							<div id="deviceStore"></div>
-						</div>
-					</div>
-
 				</div>
 			</div>
 		</div>
@@ -123,20 +112,12 @@ a:hover span {display: block; text-align: center;}
 		                </div>
 		            </div>
 		            <div class="modal-body" style="padding-left: 20px;">
-		            	<form id="addDevice" action="#" class="form-horizontal">
-							<div class="form-group" style="width: 90%;">
-								<label for="name" class="form-control-label">Device Name</label>
-	                            <select name="deviceName" id="name" class="form-control">
-	                            	<% for (let i in devices) { %>
-	                            		<option value=<%= devices[i] %>><%= devices[i] %> (<%= devices[i] %>)</option>
-	                            	<% } %>
-								</select>
-							</div>
+		            	<form id="addDevice" action="#" class="form-horizontal"> 
 							<div class="form-group" style="width: 90%;">
 	                            <label for="type" class="form-control-label">Device Type</label>
 	                            <select name="deviceType" id="type" class="form-control">
 	                            	<% for (let i in deviceList) { %>
-	                            		<option value=<%= deviceList[i].type %>><%= deviceList[i].name %> (<%= deviceList[i].type %>)</option>
+	                            		<option deviceName ='<%= deviceList[i].name %>' deviceType=<%= deviceList[i].type %> ><%= deviceList[i].name %> (<%= deviceList[i].type %>)</option>
 	                            	<% } %>
 								</select>
 								
@@ -157,8 +138,65 @@ a:hover span {display: block; text-align: center;}
 <script type="text/javascript">
 	var deviceStore = document.getElementById('deviceStore');
 	var currBtn = mouseHover;
-	var originX = 0;
-	var originY = 0;
+
+	var deviceList = JSON.parse('<%- JSON.stringify(deviceList) %>');
+	// window.onload = function() {
+	// 	var img = new Image();
+	// 	var width;
+	// 	var height;
+	// 	img.onload = function() {
+	// 		width = this.width/10;
+	// 		height = this.height/10;
+
+	// 		for (let i=0; i<height; i++) {
+	// 			var table = document.getElementById('grid');
+	// 			table.setAttribute('style', 'width=' + this.width/100 + 'px; height=' + this.height/100 + 'px');
+	// 			var row = table.insertRow(i);
+
+	// 			for (let j=0; j<width; j++) {
+	// 				var cell = row.insertCell(j);
+	// 				cell.setAttribute('name', 'cells');
+	// 				cell.setAttribute("bgColor", "transparent");
+	// 				cell.setAttribute("onmouseover", "this.bgColor='yellow'");
+	// 				cell.setAttribute("onmouseout", "this.bgColor='transparent'")
+	// 				cell.id = j + ', ' + i;
+	// 			}
+
+	// 		}
+	// 	}
+	// 	img.src = '/media/plan.png';
+
+	// }
+
+	var assetPositions = {};
+
+	$(window).resize(function(){
+		$('img[name="deviceImages"').each(function(){
+			console.log($(this)[0].id)
+			const offset = {
+				left:assetPositions[$(this)[0].id].x*$('#map').width() + $('#map')[0].x,
+				top: assetPositions[$(this)[0].id].y*$('#map').height() + $('#map')[0].y
+			}
+			$(this).offset({ top: offset.top, left: offset.left});
+		})
+		
+	})
+
+
+	//Create a System for Scaling Factors
+	function coordinateConvert(x,y){
+		let globalCoordinates = $('#map')[0].x;
+		const global = {
+			x: $('#map')[0].x,
+			y: $('#map')[0].y
+		}
+		const relative = {
+			x:Math.floor((x-global.x)/$('#map').width()*1e5)/1e5,
+			y:Math.floor((y-global.y)/$('#map').height()*1e5)/1e5,
+		}
+		return relative;
+	}
+
 	
 	$('#mouseHover', '#addDevice', '#deleteDevice', '#moveDevice', '#setOrigin').on('click', function() {
 		currBtn = this.id;
@@ -174,24 +212,30 @@ a:hover span {display: block; text-align: center;}
 	})
 
 	$('#submit').on('click', function() {
+		console.log($(this))
 		// INSERT AJAX CALL HERE
 		modal.style.display = 'none';
 		var device = document.createElement('IMG');
+		
+		
+		const deviceName = $('select#type option:selected')[0].attributes['deviceName'].value;
+		const deviceType = $('select#type option:selected')[0].attributes['deviceType'].value;
+		console.log(deviceType)
+		console.log(deviceName,deviceType)
 
-		// FILTER BY IMAGE HERE - I HAVE THEM ALL LOADED
-		console.log($('#type').val());
-		device.src = '/media/' + $('#type').val() + '.png';
-
-		device.style.height = '50px';
-		device.style.width = '50px';
+		device.src = `/media/${deviceType}.png`;
+		device.style.height = '75px';
+		device.style.width = '75px';
 		device.setAttribute("name", "deviceImages")
-		device.setAttribute("id", $('#type').val());
+		device.setAttribute("title",JSON.stringify(deviceList.filter(x => x.name == deviceName)))
+		device.setAttribute("id", deviceName);
+		device.setAttribute("deviceType", deviceType);
+		device.setAttribute("deviceName", deviceName);
 		device.style.position = 'fixed';
 		device.style.cursor = '-webkit-grab';
 		device.style.cursor = 'grab';
-		device.setAttribute('data-toggle', 'tooltip');
-		device.setAttribute('data-placement', 'top');
 		dragElement(device);
+		console.log(device);
 		deviceStore.appendChild(device);
 
 	})
@@ -219,43 +263,11 @@ a:hover span {display: block; text-align: center;}
 				devices[i].style.cursor = 'help';
 			}
 
-			devices[i].onmouseover = function() {
-				devices[i].style.height = '100px';
-	  			devices[i].style.width = '100px';
-	  			$('[data-toggle="tooltip"]').tooltip();
-			}
-
-			devices[i].onmouseout = function() {
-				devices[i].style.height = '20px';
-	  			devices[i].style.width = '20px';
+			devices[i].onclick = function() {
+				alert(devices[i].id + ' ' + devices[i].value);
 			}
 		}
 	})
-
-	$('#setOrigin').on('click', function(e) {
-		document.body.style.cursor = 'pointer';
-		currBtn = 'setOrigin';
-	})
-
-	$('#image').on('click', function(e) {
-		if (currBtn == 'setOrigin') {
-			var d = document.createElement('DIV');
-			originX = e.pageX - $('#image').offset().left;
-			originY = e.pageY - $('#image').offset().top;
-			var alert = document.getElementById('alert');
-			alert.style.display = "block";
-		}
-	})
-
-	$("#closeAlert").on('click', function() {
-		var alert = document.getElementById('alert');
-		alert.style.display = "none";
-	}) 
-
-	$("#closeAlert2").on('click', function() {
-		var alert = document.getElementById('alert2');
-		alert.style.display = "none";
-	}) 
 
 	function dragElement(elmnt) {
 	  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -275,40 +287,35 @@ a:hover span {display: block; text-align: center;}
 	    e.preventDefault();
 	    // get the mouse cursor position at startup:
 	    pos3 = e.clientX;
-	    pos4 = e.clientY;
+		pos4 = e.clientY;
 	    document.onmouseup = closeDragElement;
 	    // call a function whenever the cursor moves:
 	    document.onmousemove = elementDrag;
 	  }
 
 	  function elementDrag(e) {
-	    e = e || window.event;
+		e = e || window.event;
 	    e.preventDefault();
 	    // calculate the new cursor position:
 	    pos1 = pos3 - e.clientX;
 	    pos2 = pos4 - e.clientY;
 	    pos3 = e.clientX;
-	    pos4 = e.clientY;
+		pos4 = e.clientY;
+		
 		e.value = pos1 + ' ' + pos2 + ' ' + pos3 + ' ' + pos3;
 	    // set the element's new position:
 	    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-	    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+		elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+		const imgOffset = $($(e)[0].target).offset();
+		const newCoordinates = coordinateConvert(imgOffset.left,imgOffset.top);
+		const assetName = $(e)[0].target.id
+		assetPositions[assetName] = {
+			x: newCoordinates.x,
+			y: newCoordinates.y
+		}
 	  }
 
 	  function closeDragElement() {
-	  	if (originX == 0 && originY == 0) {
-	  		var parent = document.getElementById("deviceStore");
-			parent.removeChild(elmnt);
-			var alert = document.getElementById('alert2');
-			alert.style.display = "block";
-	  	} else {
-	  		elmnt.value = originX + ', ' + originY;
-	  		elmnt.setAttribute('title', 'Name: ' + elmnt.id + '\nLocation: ' + originX + ', ' + originY);
-	  	}
-
-	  	elmnt.style.height = '20px';
-	  	elmnt.style.width = '20px';
-	  	
 	  	elmnt.style.cursor = '-webkit-grab';
 	  	elmnt.style.cursor = '-grab';
 	    /* stop moving when mouse button is released:*/
