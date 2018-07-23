@@ -1,0 +1,82 @@
+<%- include('resources/load-standard-resources.ejs') %>
+<head>
+
+	<title>Hackathon</title>
+
+</head>
+<body>
+	<div id="header" style="width: 100%; background: #fff">
+	    <div id="headerContent">
+	        <div class="pull-left"><i class="fas fa-dashboard"></i></div>
+	    </div>
+	</div>
+	
+	<aside class="left-panel">
+		<nav class="navbar navbar-expand-sm navbar-default" data-toggle="collapse" style="display: flex">
+			<<div class="navbar-header" style="color: #fff">
+		        <a class="navbar-brand" href="./"><img src="media/sie-logo-claim-white-rgb.png" alt="Logo"></a><br>
+		        <a href="/" style="color: #fff"><h3> Hackathon App </h3></a>
+		     </div>
+		</nav>
+	</aside>
+	
+	<aside class="right-panel">
+		<header class="header">
+			<div class="header-menu">
+				<h3> Map upload</h3>
+			</div>
+		</header>
+		<div class="content mt-3">
+			<!--form ref='uploadForm' id='uploadForm' action='./upload' method='post' encType="multipart/form-data"-->
+			<div align="left-panel">
+				<span>Upload the drawing file in PDF format. Click on 'Choose file' button and select the desired PDF file. And click on 'Upload' button to start the upload.</span>
+			</div>
+			<br />
+			<div>
+				<form ref='uploadForm' id='uploadForm' name='uploadForm'>
+		        	<input type='file' id='mapFile' name='mapFile' />
+		        	<br />
+		        	<input type='button' id='btnUpload' name='btnUpload' value='Upload' />
+		    	</form>
+			</div>
+		</div>
+
+	</aside>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#btnUpload').click(function () {  
+  				// Checking whether FormData is available in browser  
+				if (window.FormData !== undefined) {  
+					//var fileUpload = $("#mapFile").get(0);  
+					var files = $("#mapFile").get(0).files;  
+					if(files.length > 0){
+						// create a FormData object which will be sent as the data payload in the
+						// AJAX request
+						var formData = new FormData();
+						// loop through all the selected files and add them to the formData object
+						for (var i = 0; i < files.length; i++) {
+							var file = files[i];
+							// add the files to formData object for the data payload
+							formData.append('uploads', file, file.name);
+						}
+						//AJAX
+						$.ajax({
+							url: '/upload',
+							type: 'POST',
+							data: formData,
+							processData: false,
+							contentType: false,
+							success: function(data){
+								console.log('upload successful:' + data);
+							},
+							error: function(err){
+								console.log('Upload has failed');
+							}
+						});
+					}
+				}	
+			});  
+		});
+	</script>
+</body>
+</html>
